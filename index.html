@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Woodland Capital — Acquisition Engine</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--sidebar:#161b22;--card:#161b22;--border:#21262d;--hover:#1c2128;--text:#e6edf3;--muted:#8b949e;--dim:#484f58;--blue:#58a6ff;--green:#3fb950;--orange:#d29922;--red:#f85149;--purple:#bc8cff}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden}
+.sidebar{width:240px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-logo{padding:20px;border-bottom:1px solid var(--border)}.sidebar-logo h2{font-size:15px}.sidebar-logo span{font-size:11px;color:var(--muted)}
+.nav{flex:1;padding:12px 0;overflow-y:auto}.nav-section{padding:0 16px;margin-top:16px;margin-bottom:6px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 16px;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s;border-left:2px solid transparent;user-select:none}
+.nav-item:hover{background:var(--hover);color:var(--text)}.nav-item.active{background:var(--hover);color:var(--blue);border-left-color:var(--blue)}
+.nav-item .icon{width:18px;text-align:center;font-size:14px}.badge{margin-left:auto;color:#fff;font-size:10px;padding:1px 6px;border-radius:8px;background:var(--blue)}.badge-g{background:var(--green)}.badge-o{background:var(--orange)}
+.sidebar-footer{padding:16px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{padding:14px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--sidebar)}
+.topbar h1{font-size:16px;font-weight:600}.topbar-right{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--muted)}
+.live-dot{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--green)}.live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.content-area{flex:1;overflow-y:auto;padding:24px}.page{display:none}.page.active{display:block}
+.grid{display:grid;gap:16px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;transition:border-color .2s}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}.card-header h3{font-size:14px;font-weight:600}
+.kpi{text-align:center;padding:20px 16px}.kpi-val{font-size:32px;font-weight:700}.kpi-label{font-size:11px;color:var(--muted);margin-top:4px}.kpi-sub{font-size:11px;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;padding:8px 10px;background:var(--hover);color:var(--muted);font-weight:500}td{padding:8px 10px;border-bottom:1px solid var(--border)}tr:hover{background:var(--hover)}
+.tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:500}
+.t-own{background:#1f3a2e;color:var(--green)}.t-co{background:#2a1f3a;color:var(--purple)}.t-bro{background:#3a2a1f;color:var(--orange)}.t-enr{background:#1f2a3a;color:var(--blue)}.t-pen{background:#30363d;color:var(--muted)}.t-new{background:#1f3a2e;color:var(--green)}.t-act{background:#1f2a3a;color:var(--blue)}.t-rep{background:#1f3a2e;color:var(--green)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:#21262d;color:var(--text);transition:all .15s;user-select:none}
+.btn:hover{background:#30363d}.btn-p{background:#238636;border-color:#238636;color:#fff}.btn-p:hover{background:#2ea043}.btn-b{background:#1f6feb;border-color:#1f6feb;color:#fff}.btn-sm{padding:3px 8px;font-size:10px}
+.score-bar{height:4px;border-radius:2px;background:#21262d;width:60px;display:inline-block;vertical-align:middle}.score-fill{height:100%;border-radius:2px;transition:width .5s}.s-h{background:var(--green)}.s-m{background:var(--orange)}.s-l{background:var(--red)}
+.kanban{display:flex;gap:10px;overflow-x:auto;padding-bottom:16px;min-height:400px}.kanban-col{min-width:200px;max-width:200px;background:var(--hover);border-radius:8px;padding:10px;flex-shrink:0}
+.kanban-header{font-size:11px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between}.kanban-count{background:var(--border);padding:1px 5px;border-radius:8px;font-size:9px;color:var(--muted)}
+.k-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:6px;cursor:grab;transition:all .2s;user-select:none}
+.k-card:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.k-card.dragging{opacity:.5;transform:rotate(2deg)}.k-card h4{font-size:11px;font-weight:600;margin-bottom:3px}.k-card p{font-size:10px;color:var(--muted)}.k-card .price{font-size:12px;font-weight:600;color:var(--green);margin-top:4px}
+.kanban-col.drag-over{background:#1c2833;outline:1px dashed var(--blue);border-radius:8px}
+.seq-vis{display:flex;align-items:center;gap:4px;margin:16px 0;flex-wrap:wrap}.seq-s{flex:1;min-width:80px;background:var(--hover);border:1px solid var(--border);border-radius:6px;padding:10px 6px;text-align:center;transition:all .4s;cursor:pointer}
+.seq-s:hover{border-color:var(--blue)}.seq-s.done{border-color:var(--green);background:#0d2818}.seq-s.cur{border-color:var(--blue);box-shadow:0 0 12px rgba(88,166,255,.25)}
+.seq-s .ch{font-size:18px;margin-bottom:2px}.seq-s .lb{font-size:9px;color:var(--muted)}.seq-s .dy{font-size:8px;color:var(--dim)}
+.seq-arr{color:var(--dim);font-size:10px;flex-shrink:0}
+.slider-wrap{display:flex;align-items:center;gap:12px;margin:12px 0}
+input[type=range]{-webkit-appearance:none;height:4px;background:var(--border);border-radius:2px;outline:none;flex:1}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--blue);cursor:pointer;border:2px solid var(--bg)}
+.search-box{background:var(--hover);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:12px;width:200px;outline:none}
+.search-box:focus{border-color:var(--blue)}
+.tab-bar{display:flex;gap:4px}.tab-btn{padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;background:transparent;border:1px solid transparent;color:var(--muted);transition:all .15s}
+.tab-btn:hover{background:var(--hover)}.tab-btn.active{background:var(--hover);color:var(--blue);border-color:var(--border)}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:100;align-items:center;justify-content:center}.modal-overlay.show{display:flex}
+.modal{background:var(--sidebar);border:1px solid var(--border);border-radius:12px;width:720px;max-height:85vh;overflow-y:auto;padding:24px;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}.modal-close{cursor:pointer;color:var(--muted);font-size:20px;background:none;border:none;padding:4px 8px;border-radius:4px}.modal-close:hover{background:var(--hover)}
+.detail-row{display:flex;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}.detail-label{width:130px;color:var(--muted);flex-shrink:0}.detail-value{color:var(--text)}
+.progress{height:6px;border-radius:3px;background:var(--border);overflow:hidden;margin:8px 0}.progress-fill{height:100%;border-radius:3px;background:var(--blue);transition:width .8s ease}
+.chart-bar{display:flex;align-items:end;gap:8px;height:110px;padding-top:12px}.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-col .bar{width:100%;border-radius:3px 3px 0 0;min-height:4px;transition:height 1s ease}.chart-col .lbl{font-size:9px;color:var(--muted)}.chart-col .val{font-size:10px;font-weight:600}
+.fb{display:flex;gap:10px;padding:12px;background:var(--hover);border:1px solid var(--border);border-radius:8px;margin-bottom:8px;transition:all .3s}
+.fb-av{width:32px;height:32px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+.fb-body{flex:1}.fb-name{font-size:12px;font-weight:600}.fb-time{font-weight:400;color:var(--dim);font-size:10px}.fb-text{font-size:12px;color:var(--muted);margin:4px 0}.fb-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:200;transform:translateY(80px);opacity:0;transition:all .4s ease}
+.toast.show{transform:translateY(0);opacity:1}
+.ba{display:grid;grid-template-columns:1fr 40px 1fr;gap:8px;align-items:start}.ba-box{background:var(--hover);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:11px}
+.ba-box.before{border-color:rgba(248,81,73,.2)}.ba-box.before h4{color:var(--red);font-size:11px;margin-bottom:8px}.ba-box.after{border-color:rgba(63,185,80,.2)}.ba-box.after h4{color:var(--green);font-size:11px;margin-bottom:8px}
+.ba-arrow{text-align:center;padding-top:24px;color:var(--dim);font-size:20px}.ba-r{padding:3px 0;border-bottom:1px solid var(--border);color:var(--muted)}.ba-r span{color:var(--text)}
+.sub-t{font-size:13px;font-weight:600;margin:20px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo"><h2>Woodland Capital</h2><span>Acquisition Engine</span></div>
+  <div class="nav">
+    <div class="nav-section">Dashboard</div>
+    <div class="nav-item active" data-page="dashboard"><span class="icon">📊</span>Overview</div>
+    <div class="nav-section">Phase 1 — Lead Engine</div>
+    <div class="nav-item" data-page="contacts"><span class="icon">👤</span>Contacts<span class="badge">13,247</span></div>
+    <div class="nav-item" data-page="scoring"><span class="icon">🎯</span>Call Lists<span class="badge badge-g">90</span></div>
+    <div class="nav-item" data-page="outreach"><span class="icon">📨</span>Outreach<span class="badge badge-o">247</span></div>
+    <div class="nav-section">Phase 2 — Deal Flow</div>
+    <div class="nav-item" data-page="listings"><span class="icon">🔍</span>Listings</div>
+    <div class="nav-item" data-page="offers"><span class="icon">📄</span>Offer Generator</div>
+    <div class="nav-section">Phase 3 — Pipeline</div>
+    <div class="nav-item" data-page="pipeline"><span class="icon">📋</span>Deals<span class="badge">18</span></div>
+    <div class="nav-section">Phase 4 — Passive</div>
+    <div class="nav-item" data-page="facebook"><span class="icon">📱</span>FB Mining<span class="badge badge-g">8</span></div>
+  </div>
+  <div class="sidebar-footer"><span class="pulse"></span> All agents running<br><span style="color:var(--dim)" id="last-sync">Last sync: 2 min ago</span></div>
+</div>
+
+<div class="main">
+  <div class="topbar"><h1 id="page-title">Dashboard</h1><div class="topbar-right"><span class="live-dot">Live</span><span id="clock"></span></div></div>
+  <div class="content-area" id="content-area"></div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)this.classList.remove('show')">
+  <div class="modal" id="modal-content"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// NOTE: This is a static preview prototype with sample data only.
+// All data shown is fictional and for demonstration purposes.
+// No real user data is collected or processed.
+
+const APP = {
+  currentCat: 'all',
+  seqPlaying: false,
+  syncSec: 120,
+  feedIdx: 0
+};
+
+const CONTACTS = [
+  {name:'Jean-Pierre Tremblay',cat:'owner',seg:'15+ yr, Sud Ouest',prop:'4521 Rue Saint-Denis (6-plex)',score:87,status:'Replied',touch:'Apr 6'},
+  {name:'Gestion Imm. Plateau',cat:'company',seg:'Director changed',prop:'3291 Ave du Parc (12-unit)',score:79,status:'In Sequence',touch:'Apr 7'},
+  {name:'Robert Lavoie',cat:'owner',seg:'18yr, Plateau',prop:'1283 Ave Laurier E (8-plex)',score:82,status:'AI Voice Done',touch:'Today'},
+  {name:'Marie-Claude Fortin',cat:'owner',seg:"Old People's Homes",prop:'7834 Boul. St-Laurent (4-plex)',score:71,status:'Email #2',touch:'Apr 5'},
+  {name:'Courtier Simard & Assoc.',cat:'broker',seg:'Multifamily specialist',prop:'RE/MAX Alliance',score:68,status:'LinkedIn Sent',touch:'Apr 4'},
+  {name:'9412-3847 Quebec Inc.',cat:'company',seg:'REQ enriched',prop:'Dir: Marc-Antoine Leblanc',score:65,status:'REQ Done',touch:'Apr 7'},
+  {name:'Nathalie Cote',cat:'owner',seg:'FB Discovery',prop:'Villeray (FB Marketplace)',score:42,status:'Enriching...',touch:'Today'},
+  {name:'Sophie Bergeron',cat:'company',seg:'4 properties',prop:'Gestion Imm. Plateau',score:74,status:'Email Opened',touch:'Apr 3'},
+  {name:'Pierre Gagnon',cat:'owner',seg:'12yr, Rosemont',prop:'5612 Rue Beaubien E (4-plex)',score:63,status:'Email #2',touch:'Apr 4'},
+  {name:'Francois Dubois',cat:'company',seg:'Verdun portfolio',prop:'Holdings SDO 2019',score:58,status:'LinkedIn',touch:'Apr 6'},
+];
+
+const DEALS = [
+  {col:'new',title:'1283 Ave Laurier E',desc:'Robert Lavoie - 8-plex',price:'$1,450,000'},
+  {col:'new',title:'892 Rue Wellington',desc:'Holdings SDO - 6-plex',price:'$980,000'},
+  {col:'new',title:'Broker tip: 16-unit',desc:'Simard - Verdun off-market',price:'$2,400,000'},
+  {col:'follow',title:'5621 Ave Papineau',desc:'Blind offer Apr 3',price:'$2,100,000',note:'Auto follow-up tomorrow'},
+  {col:'follow',title:'3847 Boul. Decarie',desc:'Owner wants more info',price:'$1,800,000'},
+  {col:'waiting',title:'4521 Rue Saint-Denis',desc:'JP Tremblay - rent roll',price:'$1,100,000',note:'Reminder sent'},
+  {col:'analyze',title:'7834 Boul. St-Laurent',desc:'AI extracting proforma',price:'$920,000',note:'Auto-filling...'},
+  {col:'offer',title:'2847 Rue Wellington',desc:'Sent Apr 7 - Opened 2x',price:'$1,100,000'},
+  {col:'accepted',title:'1847 Ave de Lorimier',desc:'Closing May 15',price:'$1,200,000'},
+  {col:'refused',title:'3291 Ave du Parc',desc:'Re-contact Jul',price:'$1,800,000',note:'Nurture 3mo'},
+];
+
+const COLS = [{id:'new',label:'New Deal',color:'var(--blue)'},{id:'follow',label:'Follow Up',color:'var(--blue)'},{id:'waiting',label:'Waiting',color:'var(--orange)'},{id:'analyze',label:'Analyze',color:'var(--purple)'},{id:'offer',label:'Offer Sent',color:'var(--green)'},{id:'accepted',label:'Accepted',color:'var(--green)'},{id:'refused',label:'Refused',color:'var(--red)'}];
+
+const FEED_MSGS = [
+  ['Enrichment Agent','enriched 12 company owners via REQ','var(--green)'],
+  ['Email Agent','sent 8 follow-ups via Instantly','var(--blue)'],
+  ['Voice Agent','3 calls - 1 interested (R. Lavoie)','var(--purple)'],
+  ['Scraper Agent','4 new Centris listings found','var(--orange)'],
+  ['FB Agent','3 owner posts detected','var(--green)'],
+  ['QA Agent','15 messages reviewed - 94% quality','var(--blue)'],
+  ['Scoring Agent','847 scores recalculated','var(--orange)'],
+  ['LinkedIn Agent','6 requests sent, 2 accepted','var(--purple)'],
+  ['SMS Agent','14 delivered, 3 replies','var(--green)'],
+  ['Letter Agent','8 letters queued for mailing','var(--orange)'],
+];
+
+const catTag = {owner:'t-own',company:'t-co',broker:'t-bro'};
+const catLbl = {owner:'Owner',company:'Company',broker:'Broker'};
+
+// === PAGES ===
+const PAGES = {};
+
+PAGES.dashboard = function() {
+  return `
+    <div class="grid g4" style="margin-bottom:20px">
+      <div class="card kpi"><div class="kpi-val" style="color:var(--blue)" data-count="13247">0</div><div class="kpi-label">Total Contacts</div><div class="kpi-sub" style="color:var(--green)">+342 this week</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--green)" data-count="4891">0</div><div class="kpi-label">Enriched</div><div class="kpi-sub" style="color:var(--green)">37% of database</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--orange)" data-count="247">0</div><div class="kpi-label">Active Sequences</div><div class="kpi-sub" style="color:var(--green)">+18 today</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--purple)" data-count="18">0</div><div class="kpi-label">Deals in Pipeline</div><div class="kpi-sub" style="color:var(--green)">$14.2M value</div></div>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <div class="card-header"><h3>Outreach (30 Days)</h3></div>
+        <div class="chart-bar">
+          <div class="chart-col"><div class="bar" data-h="40" style="height:0;background:var(--blue)"></div><div class="val" style="color:var(--blue)">312</div><div class="lbl">Letters</div></div>
+          <div class="chart-col"><div class="bar" data-h="70" style="height:0;background:var(--green)"></div><div class="val" style="color:var(--green)">589</div><div class="lbl">Email</div></div>
+          <div class="chart-col"><div class="bar" data-h="35" style="height:0;background:var(--orange)"></div><div class="val" style="color:var(--orange)">247</div><div class="lbl">SMS</div></div>
+          <div class="chart-col"><div class="bar" data-h="50" style="height:0;background:var(--purple)"></div><div class="val" style="color:var(--purple)">398</div><div class="lbl">LinkedIn</div></div>
+          <div class="chart-col"><div class="bar" data-h="25" style="height:0;background:var(--red)"></div><div class="val" style="color:var(--red)">182</div><div class="lbl">AI Voice</div></div>
+          <div class="chart-col"><div class="bar" data-h="18" style="height:0;background:var(--dim)"></div><div class="val">119</div><div class="lbl">Facebook</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Pipeline</h3></div>
+        <table><tr><td>New Deals</td><td style="text-align:right;font-weight:600">5</td><td style="text-align:right;color:var(--muted)">$3.8M</td></tr><tr><td>Follow Up</td><td style="text-align:right;font-weight:600">4</td><td style="text-align:right;color:var(--muted)">$2.1M</td></tr><tr><td>Waiting</td><td style="text-align:right;font-weight:600">1</td><td style="text-align:right;color:var(--muted)">$1.1M</td></tr><tr><td>Analyze</td><td style="text-align:right;font-weight:600">1</td><td style="text-align:right;color:var(--muted)">$920K</td></tr><tr><td>Offer Sent</td><td style="text-align:right;font-weight:600">1</td><td style="text-align:right;color:var(--muted)">$1.1M</td></tr><tr><td style="color:var(--green)">Accepted</td><td style="text-align:right;font-weight:600;color:var(--green)">1</td><td style="text-align:right;color:var(--green)">$1.2M</td></tr></table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="card-header"><h3>Agent Activity</h3><span class="live-dot">Live</span></div>
+      <div id="agent-feed" style="font-size:12px;max-height:200px;overflow-y:auto"></div>
+    </div>`;
+};
+
+PAGES.contacts = function() {
+  return `
+    <div class="grid g3" style="margin-bottom:16px">
+      <div class="card kpi"><div class="kpi-val" style="color:var(--green)" data-count="7204">0</div><div class="kpi-label">Direct Owners</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--purple)" data-count="3891">0</div><div class="kpi-label">Companies</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--orange)" data-count="2152">0</div><div class="kpi-label">Brokers</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Database</h3>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="tab-bar" id="cat-tabs"></div>
+          <input class="search-box" placeholder="Search..." id="csearch">
+          <span class="btn btn-p" id="upload-btn">Upload List</span>
+        </div>
+      </div>
+      <div class="sub-t">Before / After Enrichment</div>
+      <div class="ba" style="margin-bottom:20px">
+        <div class="ba-box before"><h4>BEFORE</h4><div class="ba-r">Owner: <span>TREMBLAY JEAN-PIERRE et TREMBLAY</span></div><div class="ba-r">Address: <span>4521 rue st-denis</span></div><div class="ba-r">Phone: <span style="color:var(--red)">(empty)</span></div><div class="ba-r">Score: <span style="color:var(--red)">(none)</span></div></div>
+        <div class="ba-arrow">&#8594;</div>
+        <div class="ba-box after"><h4>AFTER</h4><div class="ba-r">Name: <span>Jean-Pierre Tremblay</span></div><div class="ba-r">Address: <span>4521 Rue Saint-Denis, QC H2J 2L4</span></div><div class="ba-r">Phone: <span>+1 (514) 555-0147</span></div><div class="ba-r">Score: <span style="color:var(--green)">87 / High Priority</span></div></div>
+      </div>
+      <table><thead><tr><th>Name</th><th>Category</th><th>Segment</th><th>Property</th><th>Score</th><th>Status</th><th>Last</th></tr></thead><tbody id="ctable"></tbody></table>
+    </div>`;
+};
+
+PAGES.scoring = function() {
+  return `
+    <div class="grid g3" style="margin-bottom:16px">
+      <div class="card kpi"><div class="kpi-val" style="color:var(--green)">50</div><div class="kpi-label">Owners</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--purple)">20</div><div class="kpi-label">Companies</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--orange)">20</div><div class="kpi-label">Brokers</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Weekly Call List</h3><div style="display:flex;gap:8px;align-items:center"><span style="font-size:11px;color:var(--muted)">Min score:</span><input type="range" min="0" max="100" value="50" id="score-slider" style="width:120px"><span id="score-val" style="font-size:12px;font-weight:600;color:var(--blue)">50</span></div></div>
+      <table><thead><tr><th>#</th><th>Name</th><th>Cat</th><th>Phone</th><th>Score</th><th>Why</th></tr></thead><tbody id="call-tbody"></tbody></table>
+    </div>`;
+};
+
+PAGES.outreach = function() {
+  return `
+    <div class="grid g4" style="margin-bottom:16px">
+      <div class="card kpi"><div class="kpi-val" style="color:var(--blue)" data-count="247">0</div><div class="kpi-label">Sequences</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--green)">16.9%</div><div class="kpi-label">Reply Rate</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--orange)" data-count="1847">0</div><div class="kpi-label">Touches/Mo</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--purple)">94%</div><div class="kpi-label">QA Score</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Owner Sequence</h3><span class="btn btn-sm btn-b" id="play-seq-btn">&#9654; Play Demo</span></div>
+      <div class="seq-vis" id="seq-demo">
+        <div class="seq-s" data-step="0"><div class="ch">&#9993;</div><div class="lb">Letter</div><div class="dy">Day 1</div></div><div class="seq-arr">&#8594;</div>
+        <div class="seq-s" data-step="1"><div class="ch">&#128172;</div><div class="lb">SMS</div><div class="dy">Day 7</div></div><div class="seq-arr">&#8594;</div>
+        <div class="seq-s" data-step="2"><div class="ch">&#128231;</div><div class="lb">Email x3</div><div class="dy">Day 12</div></div><div class="seq-arr">&#8594;</div>
+        <div class="seq-s" data-step="3"><div class="ch">&#128188;</div><div class="lb">LinkedIn</div><div class="dy">Day 25</div></div><div class="seq-arr">&#8594;</div>
+        <div class="seq-s" data-step="4"><div class="ch">&#129302;</div><div class="lb">AI Voice</div><div class="dy">Day 30</div></div><div class="seq-arr">&#8594;</div>
+        <div class="seq-s" data-step="5"><div class="ch">&#128260;</div><div class="lb">Nurture</div><div class="dy">3-6 mo</div></div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--muted)">Reply at any stage &#8594; all paused &#8594; team notified &#8594; HubSpot deal</div>
+    </div>`;
+};
+
+PAGES.listings = function() {
+  return `
+    <div class="grid g3" style="margin-bottom:16px">
+      <div class="card kpi"><div class="kpi-val" style="color:var(--blue)">47</div><div class="kpi-label">Scraped</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--green)">12</div><div class="kpi-label">Matched</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--orange)">5</div><div class="kpi-label">Ready</div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>Listings</h3><span class="btn btn-b btn-sm" id="scrape-btn">&#128269; Run Scrape</span></div>
+      <div class="progress" id="scrape-prog" style="display:none"><div class="progress-fill" style="width:0"></div></div>
+      <table><thead><tr><th>Address</th><th>Type</th><th>Asking</th><th>Assessed</th><th>$/Door</th><th>Broker</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>2847 Rue Wellington</td><td>8-plex</td><td>$1,280,000</td><td>$1,450,000</td><td>$160K</td><td>RE/MAX</td><td><span class="btn btn-p btn-sm" id="gen-offer-btn">Generate Offer</span></td></tr>
+        <tr><td>5621 Ave Papineau</td><td>12-unit</td><td>$2,100,000</td><td>$2,380,000</td><td>$175K</td><td>Sutton</td><td><span class="btn btn-sm">Review</span></td></tr>
+        <tr><td>1483 Boul. Monk</td><td>6-plex</td><td>$890,000</td><td>$1,020,000</td><td>$148K</td><td>Century 21</td><td><span class="btn btn-sm">Review</span></td></tr>
+      </tbody></table>
+    </div>`;
+};
+
+PAGES.offers = function() {
+  return `
+    <div class="card">
+      <div class="card-header"><h3>AI Offer Generator</h3></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">2847 Rue Wellington, Verdun &#8212; 8-plex &#8212; Asking $1,280,000 &#8212; Assessed $1,450,000</div>
+      <div class="slider-wrap"><span style="font-size:11px;color:var(--muted)">Offer %:</span><input type="range" min="70" max="100" value="85" id="offer-pct" style="width:200px"><span id="offer-pct-val" style="font-size:13px;font-weight:600;color:var(--blue)">85%</span></div>
+      <div class="grid g3" style="margin-bottom:16px">
+        <div class="card" style="text-align:center;border-color:var(--green)"><div style="font-size:10px;color:var(--muted)">Offer Price</div><div style="font-size:24px;font-weight:700;color:var(--green)" id="o-price">$1,232,500</div></div>
+        <div class="card" style="text-align:center"><div style="font-size:10px;color:var(--muted)">Cap Rate</div><div style="font-size:24px;font-weight:700;color:var(--blue)" id="o-cap">5.37%</div></div>
+        <div class="card" style="text-align:center"><div style="font-size:10px;color:var(--muted)">$/Door</div><div style="font-size:24px;font-weight:700;color:var(--orange)" id="o-door">$154,063</div></div>
+      </div>
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:20px;font-size:13px;line-height:1.7">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:8px">AI-Generated Cover Letter:</div>
+        Dear Mr. Simard,<br><br>Woodland Capital submits an offer of <strong id="lp">$1,232,500</strong> for the 8-unit property at 2847 Rue Wellington, Verdun. We close within 45 days with financing in place. Our offer represents <strong id="lpct">85%</strong> of the municipal assessment.<br><br>Cordialement,<br>Woodland Capital
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px"><span class="btn btn-p" id="send-btn">&#128228; Send to Broker</span><span class="btn">&#9999; Edit</span><span class="btn">&#128196; PDF</span></div>
+    </div>`;
+};
+
+PAGES.pipeline = function() { return '<div class="kanban" id="kanban"></div>'; };
+
+PAGES.facebook = function() {
+  return `
+    <div class="grid g3" style="margin-bottom:16px">
+      <div class="card kpi"><div class="kpi-val" style="color:var(--blue)" data-count="23">0</div><div class="kpi-label">Scanned</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--green)" data-count="8">0</div><div class="kpi-label">Owners</div></div>
+      <div class="card kpi"><div class="kpi-val" style="color:var(--orange)" data-count="3">0</div><div class="kpi-label">New</div></div>
+    </div>
+    <div class="card"><div class="card-header"><h3>Posts</h3><span class="live-dot">Scanning</span></div>
+      <div class="fb"><div class="fb-av">ML</div><div class="fb-body"><div class="fb-name">Michel Lapointe <span class="fb-time">2h ago</span></div><div class="fb-text">4 1/2 a louer, Hochelaga. $1,200/mois.</div><div class="fb-actions"><span class="tag t-new">New</span><span class="tag t-enr">Enriching...</span><span class="btn btn-sm">Start Outreach</span></div></div></div>
+      <div class="fb"><div class="fb-av">NC</div><div class="fb-body"><div class="fb-name">Nathalie Cote <span class="fb-time">4h ago</span></div><div class="fb-text">5 1/2 lumineux, Villeray. $1,450. Proprio direct.</div><div class="fb-actions"><span class="tag t-rep">Enriched</span><span class="btn btn-sm btn-p">Outreach Started</span></div></div></div>
+      <div class="fb"><div class="fb-av" style="background:#1f3a2e">RL</div><div class="fb-body"><div class="fb-name">Robert Lavoie <span class="fb-time">5h ago</span></div><div class="fb-text">3 1/2 renove, Rosemont, $950.</div><div class="fb-actions"><span class="tag" style="background:#3a2a1f;color:var(--orange)">Known +15</span><span style="font-size:10px;color:var(--muted)">Activity noted</span></div></div></div>
+      <div class="fb" style="opacity:.4"><div class="fb-av">GI</div><div class="fb-body"><div class="fb-name">Groupe Imm. MTL <span class="fb-time">6h ago</span></div><div class="fb-text">Plusieurs logements, Sud-Ouest.</div><div class="fb-actions"><span class="tag" style="background:#3a1f1f;color:var(--red)">Filtered - Agency</span></div></div></div>
+    </div>`;
+};
+
+// === RENDER ===
+function showPage(name) {
+  const area = document.getElementById('content-area');
+  area.textContent = '';
+  area.insertAdjacentHTML('beforeend', PAGES[name]());
+  animateCounters(area);
+
+  const titles = {dashboard:'Dashboard',contacts:'Contacts',scoring:'Weekly Call Lists',outreach:'Outreach Sequences',listings:'Property Listings',offers:'AI Offer Generator',pipeline:'Deal Pipeline',facebook:'Facebook Lead Mining'};
+  document.getElementById('page-title').textContent = titles[name] || '';
+
+  // Page-specific bindings
+  if (name === 'dashboard') initDashboard();
+  if (name === 'contacts') initContacts();
+  if (name === 'scoring') initScoring();
+  if (name === 'outreach') initOutreach();
+  if (name === 'listings') initListings();
+  if (name === 'offers') initOffers();
+  if (name === 'pipeline') buildKanban();
+}
+
+// === NAV ===
+document.querySelectorAll('.nav-item').forEach(n => {
+  n.addEventListener('click', function() {
+    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+    showPage(this.dataset.page);
+  });
+});
+
+// === COUNTERS ===
+function animateCounters(container) {
+  container.querySelectorAll('[data-count]').forEach(el => {
+    const target = parseInt(el.dataset.count);
+    let cur = 0;
+    const step = Math.max(1, Math.floor(target / 40));
+    const iv = setInterval(() => {
+      cur += step;
+      if (cur >= target) { cur = target; clearInterval(iv); }
+      el.textContent = cur.toLocaleString();
+    }, 30);
+  });
+  setTimeout(() => {
+    container.querySelectorAll('.bar[data-h]').forEach(b => { b.style.height = b.dataset.h + '%'; });
+  }, 200);
+}
+
+// === TOAST ===
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// === MODAL ===
+function openModal(html) {
+  document.getElementById('modal-content').textContent = '';
+  document.getElementById('modal-content').insertAdjacentHTML('beforeend', html);
+  document.getElementById('modal').classList.add('show');
+}
+
+// === CLOCK ===
+function updateClock() {
+  const d = new Date();
+  document.getElementById('clock').textContent = d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) + ' - ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+updateClock(); setInterval(updateClock, 30000);
+
+// === DASHBOARD ===
+function initDashboard() {
+  const feed = document.getElementById('agent-feed');
+  function addFeed() {
+    const m = FEED_MSGS[APP.feedIdx % FEED_MSGS.length];
+    const now = new Date();
+    const t = now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:6px 0;border-bottom:1px solid var(--border);opacity:0;transform:translateY(-8px);transition:all .4s';
+    const time = document.createElement('span');
+    time.style.color = 'var(--muted)';
+    time.textContent = t + ' - ';
+    const agent = document.createElement('span');
+    agent.style.color = m[2];
+    agent.textContent = m[0] + ' ';
+    const msg = document.createTextNode(m[1]);
+    div.appendChild(time);
+    div.appendChild(agent);
+    div.appendChild(msg);
+    feed.insertBefore(div, feed.firstChild);
+    setTimeout(() => { div.style.opacity = '1'; div.style.transform = 'translateY(0)'; }, 50);
+    if (feed.children.length > 15) feed.removeChild(feed.lastChild);
+    APP.feedIdx++;
+  }
+  for (let i = 0; i < 6; i++) setTimeout(addFeed, i * 100);
+  setInterval(addFeed, 5000);
+}
+
+// === CONTACTS ===
+function initContacts() {
+  const tabs = document.getElementById('cat-tabs');
+  ['all','owner','company','broker'].forEach(c => {
+    const btn = document.createElement('div');
+    btn.className = 'tab-btn' + (c === APP.currentCat ? ' active' : '');
+    btn.textContent = c === 'all' ? 'All' : c.charAt(0).toUpperCase() + c.slice(1) + 's';
+    btn.addEventListener('click', function() {
+      tabs.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+      this.classList.add('active');
+      APP.currentCat = c;
+      renderContacts();
+    });
+    tabs.appendChild(btn);
+  });
+  document.getElementById('csearch').addEventListener('input', renderContacts);
+  document.getElementById('upload-btn').addEventListener('click', simulateUpload);
+  renderContacts();
+}
+
+function renderContacts() {
+  const q = (document.getElementById('csearch') || {}).value || '';
+  const tbody = document.getElementById('ctable');
+  tbody.textContent = '';
+  CONTACTS.filter(c => {
+    if (APP.currentCat !== 'all' && c.cat !== APP.currentCat) return false;
+    if (q && !c.name.toLowerCase().includes(q.toLowerCase())) return false;
+    return true;
+  }).forEach(c => {
+    const sf = c.score >= 75 ? 's-h' : c.score >= 55 ? 's-m' : 's-l';
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    tr.addEventListener('click', () => showContactModal(c));
+    tr.insertAdjacentHTML('beforeend',
+      '<td><strong>'+esc(c.name)+'</strong></td>'+
+      '<td><span class="tag '+catTag[c.cat]+'">'+catLbl[c.cat]+'</span></td>'+
+      '<td>'+esc(c.seg)+'</td><td>'+esc(c.prop)+'</td>'+
+      '<td><div class="score-bar"><div class="score-fill '+sf+'" style="width:'+c.score+'%"></div></div> '+c.score+'</td>'+
+      '<td><span class="tag t-act">'+esc(c.status)+'</span></td><td>'+esc(c.touch)+'</td>'
+    );
+    tbody.appendChild(tr);
+  });
+}
+
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function showContactModal(c) {
+  openModal(
+    '<div class="modal-header"><h3>'+esc(c.name)+'</h3><button class="modal-close" onclick="document.getElementById(\'modal\').classList.remove(\'show\')">&times;</button></div>'+
+    '<div class="grid g2" style="margin-bottom:16px"><div>'+
+    '<div class="detail-row"><span class="detail-label">Category</span><span class="detail-value"><span class="tag '+catTag[c.cat]+'">'+catLbl[c.cat]+'</span></span></div>'+
+    '<div class="detail-row"><span class="detail-label">Property</span><span class="detail-value">'+esc(c.prop)+'</span></div>'+
+    '<div class="detail-row"><span class="detail-label">Segment</span><span class="detail-value">'+esc(c.seg)+'</span></div>'+
+    '<div class="detail-row"><span class="detail-label">Score</span><span class="detail-value" style="color:var(--green);font-weight:600">'+c.score+'/100</span></div>'+
+    '</div><div>'+
+    '<div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value">+1 (514) 555-0147</span></div>'+
+    '<div class="detail-row"><span class="detail-label">Email</span><span class="detail-value">contact@example.com</span></div>'+
+    '<div class="detail-row"><span class="detail-label">LinkedIn</span><span class="detail-value" style="color:var(--blue)">View Profile</span></div>'+
+    '<div class="detail-row"><span class="detail-label">HubSpot</span><span class="detail-value" style="color:var(--blue)">Open in CRM &#8594;</span></div>'+
+    '</div></div>'+
+    '<h4 style="font-size:12px;margin-bottom:8px">Outreach Timeline</h4>'+
+    '<table><tr><th>Date</th><th>Channel</th><th>Action</th><th>Result</th></tr>'+
+    '<tr><td>Mar 15</td><td><span class="tag" style="background:#3a2a1f;color:var(--orange)">Letter</span></td><td>Initial letter</td><td style="color:var(--muted)">No response</td></tr>'+
+    '<tr><td>Mar 22</td><td><span class="tag t-new">SMS</span></td><td>Follow-up</td><td style="color:var(--muted)">No response</td></tr>'+
+    '<tr><td>Mar 27</td><td><span class="tag t-enr">Email</span></td><td>Personalized #1</td><td style="color:var(--green)">Opened</td></tr>'+
+    '<tr><td>Apr 1</td><td><span class="tag t-enr">Email</span></td><td>Follow-up #2</td><td style="color:var(--green)">Replied!</td></tr>'+
+    '<tr><td>Apr 6</td><td><span class="tag" style="background:#2a1f3a;color:var(--purple)">Phone</span></td><td>Team called</td><td style="color:var(--green);font-weight:600">Deal Created</td></tr></table>'+
+    '<div style="margin-top:16px;display:flex;gap:8px"><span class="btn btn-p">Open HubSpot</span><span class="btn">Schedule Call</span><span class="btn">Pause Sequence</span></div>'
+  );
+}
+
+// === SCORING ===
+function initScoring() {
+  const slider = document.getElementById('score-slider');
+  slider.addEventListener('input', function() {
+    document.getElementById('score-val').textContent = this.value;
+    renderCallList(parseInt(this.value));
+  });
+  renderCallList(50);
+}
+
+function renderCallList(min) {
+  const tbody = document.getElementById('call-tbody');
+  tbody.textContent = '';
+  const list = CONTACTS.filter(c => c.score >= min).sort((a,b) => b.score - a.score);
+  list.forEach((c, i) => {
+    const sf = c.score >= 75 ? 's-h' : c.score >= 55 ? 's-m' : 's-l';
+    const tr = document.createElement('tr');
+    tr.insertAdjacentHTML('beforeend',
+      '<td>'+(i+1)+'</td><td><strong>'+esc(c.name)+'</strong></td>'+
+      '<td><span class="tag '+catTag[c.cat]+'">'+catLbl[c.cat]+'</span></td>'+
+      '<td>+1 (514) 555-0xxx</td>'+
+      '<td><div class="score-bar"><div class="score-fill '+sf+'" style="width:'+c.score+'%"></div></div> '+c.score+'</td>'+
+      '<td style="font-size:10px;color:var(--muted)">'+esc(c.seg)+'</td>'
+    );
+    tbody.appendChild(tr);
+  });
+}
+
+// === OUTREACH ===
+function initOutreach() {
+  document.getElementById('play-seq-btn').addEventListener('click', playSequence);
+}
+
+function playSequence() {
+  if (APP.seqPlaying) return;
+  APP.seqPlaying = true;
+  const steps = document.querySelectorAll('#seq-demo .seq-s');
+  steps.forEach(s => { s.classList.remove('done','cur'); });
+  let i = 0;
+  const iv = setInterval(() => {
+    if (i > 0) { steps[i-1].classList.remove('cur'); steps[i-1].classList.add('done'); }
+    if (i < steps.length) { steps[i].classList.add('cur'); i++; }
+    else { clearInterval(iv); APP.seqPlaying = false; showToast('Sequence complete - contact enters nurture cycle'); }
+  }, 800);
+}
+
+// === LISTINGS ===
+function initListings() {
+  document.getElementById('scrape-btn').addEventListener('click', runScrape);
+  const goBtn = document.getElementById('gen-offer-btn');
+  if (goBtn) goBtn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => { n.classList.remove('active'); if (n.dataset.page === 'offers') n.classList.add('active'); });
+    showPage('offers');
+  });
+}
+
+function runScrape() {
+  const btn = document.getElementById('scrape-btn');
+  const prog = document.getElementById('scrape-prog');
+  const fill = prog.querySelector('.progress-fill');
+  btn.textContent = 'Scraping Centris...';
+  btn.style.opacity = '.6';
+  prog.style.display = 'block';
+  fill.style.width = '0';
+  setTimeout(() => fill.style.width = '30%', 200);
+  setTimeout(() => { fill.style.width = '60%'; btn.textContent = 'Scraping LoopNet...'; }, 1200);
+  setTimeout(() => { fill.style.width = '90%'; btn.textContent = 'Filtering...'; }, 2200);
+  setTimeout(() => {
+    fill.style.width = '100%';
+    btn.textContent = '4 new found!';
+    btn.style.color = 'var(--green)';
+    showToast('Scrape complete: 51 checked, 4 new matches');
+    setTimeout(() => { btn.textContent = 'Run Scrape'; btn.style.opacity = ''; btn.style.color = ''; prog.style.display = 'none'; }, 4000);
+  }, 3000);
+}
+
+// === OFFERS ===
+function initOffers() {
+  document.getElementById('offer-pct').addEventListener('input', updateOffer);
+  document.getElementById('send-btn').addEventListener('click', sendOffer);
+  updateOffer();
+}
+
+function updateOffer() {
+  const pct = parseInt(document.getElementById('offer-pct').value);
+  const assessed = 1450000;
+  const price = Math.round(assessed * pct / 100);
+  const noi = 66240;
+  const cap = (noi / price * 100).toFixed(2);
+  const door = Math.round(price / 8);
+  document.getElementById('offer-pct-val').textContent = pct + '%';
+  document.getElementById('o-price').textContent = '$' + price.toLocaleString();
+  document.getElementById('o-cap').textContent = cap + '%';
+  document.getElementById('o-door').textContent = '$' + door.toLocaleString();
+  document.getElementById('lp').textContent = '$' + price.toLocaleString();
+  document.getElementById('lpct').textContent = pct + '%';
+}
+
+function sendOffer() {
+  const btn = document.getElementById('send-btn');
+  btn.textContent = 'Generating PDF...';
+  btn.style.opacity = '.7';
+  setTimeout(() => { btn.textContent = 'Sending to broker...'; }, 1000);
+  setTimeout(() => { btn.textContent = 'Sent!'; btn.style.background = 'var(--green)'; showToast('Offer sent to P. Simard (RE/MAX) - Deal created in HubSpot'); }, 2500);
+  setTimeout(() => { btn.textContent = 'Send to Broker'; btn.style.background = ''; btn.style.opacity = ''; }, 5000);
+}
+
+// === UPLOAD ===
+function simulateUpload() {
+  openModal(
+    '<div class="modal-header"><h3>Upload Contact List</h3><button class="modal-close" onclick="document.getElementById(\'modal\').classList.remove(\'show\')">&times;</button></div>'+
+    '<div class="card" style="border:2px dashed var(--border);text-align:center;padding:32px;cursor:pointer" id="drop-area">'+
+    '<div style="font-size:32px;margin-bottom:8px" id="drop-icon">&#128193;</div>'+
+    '<div style="font-size:13px" id="drop-txt">Click to select CSV or Excel</div>'+
+    '</div>'+
+    '<div class="progress" id="up-prog" style="display:none"><div class="progress-fill" id="up-fill" style="width:0"></div></div>'+
+    '<div id="up-result" style="display:none;margin-top:12px;font-size:12px;line-height:1.8"></div>'
+  );
+  document.getElementById('drop-area').addEventListener('click', runUpload);
+}
+
+function runUpload() {
+  const icon = document.getElementById('drop-icon');
+  const txt = document.getElementById('drop-txt');
+  const prog = document.getElementById('up-prog');
+  const fill = document.getElementById('up-fill');
+  const result = document.getElementById('up-result');
+  icon.textContent = '...';
+  txt.textContent = 'Processing sud_ouest_owners_2026.csv...';
+  prog.style.display = 'block'; fill.style.width = '0';
+  setTimeout(() => { fill.style.width = '25%'; txt.textContent = 'Detecting: Owners list'; }, 500);
+  setTimeout(() => { fill.style.width = '50%'; txt.textContent = 'Deduplicating vs 13,247...'; }, 1500);
+  setTimeout(() => { fill.style.width = '75%'; txt.textContent = 'Clay enrichment triggered...'; }, 2500);
+  setTimeout(() => { fill.style.width = '100%'; txt.textContent = 'Done!'; icon.textContent = '&#10003;'; }, 3500);
+  setTimeout(() => {
+    result.style.display = 'block';
+    const lines = [
+      {color:'var(--green)',text:'247 new contacts added'},
+      {color:'var(--orange)',text:'12 duplicates merged'},
+      {color:'var(--blue)',text:'247 Clay enrichments triggered'},
+      {color:'var(--purple)',text:'38 high-score (>70)'},
+    ];
+    result.textContent = '';
+    lines.forEach(l => {
+      const d = document.createElement('div');
+      d.style.color = l.color;
+      d.textContent = l.text;
+      result.appendChild(d);
+    });
+    showToast('247 owners added from CSV');
+  }, 4000);
+}
+
+// === KANBAN ===
+function buildKanban() {
+  const k = document.getElementById('kanban');
+  k.textContent = '';
+  COLS.forEach(col => {
+    const colDeals = DEALS.filter(d => d.col === col.id);
+    const div = document.createElement('div');
+    div.className = 'kanban-col';
+    div.dataset.col = col.id;
+    div.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('drag-over'); });
+    div.addEventListener('dragleave', function() { this.classList.remove('drag-over'); });
+    div.addEventListener('drop', function(e) {
+      e.preventDefault(); this.classList.remove('drag-over');
+      const idx = e.dataTransfer.getData('text/plain');
+      DEALS[idx].col = col.id;
+      buildKanban();
+      showToast('Deal moved to ' + col.label);
+    });
+
+    const header = document.createElement('div');
+    header.className = 'kanban-header';
+    header.style.color = col.color;
+    header.textContent = col.label + ' ';
+    const cnt = document.createElement('span');
+    cnt.className = 'kanban-count';
+    cnt.textContent = colDeals.length;
+    header.appendChild(cnt);
+    div.appendChild(header);
+
+    colDeals.forEach(d => {
+      const globalIdx = DEALS.indexOf(d);
+      const card = document.createElement('div');
+      card.className = 'k-card';
+      card.draggable = true;
+      card.addEventListener('dragstart', function(e) { e.dataTransfer.setData('text/plain', String(globalIdx)); this.classList.add('dragging'); });
+      card.addEventListener('dragend', function() { this.classList.remove('dragging'); });
+      card.addEventListener('click', function() { showDealModal(d); });
+      const h4 = document.createElement('h4');
+      h4.textContent = d.title;
+      const p = document.createElement('p');
+      p.textContent = d.desc;
+      const pr = document.createElement('div');
+      pr.className = 'price';
+      pr.textContent = d.price;
+      card.appendChild(h4);
+      card.appendChild(p);
+      if (d.note) { const n = document.createElement('p'); n.style.cssText = 'color:var(--orange);font-size:9px;margin-top:2px'; n.textContent = d.note; card.appendChild(n); }
+      card.appendChild(pr);
+      div.appendChild(card);
+    });
+    k.appendChild(div);
+  });
+}
+
+function showDealModal(d) {
+  const stage = COLS.find(c => c.id === d.col);
+  openModal(
+    '<div class="modal-header"><h3>'+esc(d.title)+'</h3><button class="modal-close" onclick="document.getElementById(\'modal\').classList.remove(\'show\')">&times;</button></div>'+
+    '<div class="detail-row"><span class="detail-label">Stage</span><span class="detail-value">'+esc(stage.label)+'</span></div>'+
+    '<div class="detail-row"><span class="detail-label">Details</span><span class="detail-value">'+esc(d.desc)+'</span></div>'+
+    '<div class="detail-row"><span class="detail-label">Value</span><span class="detail-value" style="color:var(--green);font-weight:600">'+esc(d.price)+'</span></div>'+
+    (d.note ? '<div class="detail-row"><span class="detail-label">Note</span><span class="detail-value" style="color:var(--orange)">'+esc(d.note)+'</span></div>' : '')+
+    '<div style="margin-top:16px;display:flex;gap:8px"><span class="btn btn-p">Open HubSpot</span><span class="btn">Add Note</span></div>'
+  );
+}
+
+// === SYNC TIMER ===
+setInterval(() => {
+  APP.syncSec += 5;
+  const min = Math.floor(APP.syncSec / 60);
+  document.getElementById('last-sync').textContent = min < 1 ? 'Last sync: just now' : 'Last sync: ' + min + ' min ago';
+}, 5000);
+
+// === INIT ===
+showPage('dashboard');
+</script>
+</body>
+</html>
